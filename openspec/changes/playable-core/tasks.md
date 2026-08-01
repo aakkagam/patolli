@@ -67,4 +67,4 @@
 - [x] 8.4 Check the reduced-motion path, `grayscale(1)` legibility, keyboard focus, and 44px targets
 - [x] 8.5 Check 360px portrait, tablet and laptop widths for horizontal scroll and cropping
 - [x] 8.6 Run `npm run build -- --base=/patolli/` and confirm assets stay rooted at `/patolli/` and the prose survives
-- [ ] 8.7 Push, confirm the deploy succeeds, and verify the live page plays
+- [x] 8.7 Push, confirm the deploy succeeds, and verify the live page plays
