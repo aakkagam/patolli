@@ -14,3 +14,6 @@ openspec/
 # byte-identical to ../senet/index.html so the copies can be diffed and kept in
 # step; the siblings have no Prettier, so reformatting here would fork it.
 index.html
+
+# Browser-testing artifacts
+.playwright-mcp/

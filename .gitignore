@@ -9,3 +9,6 @@ dist/
 .claude/commands/
 .claude/skills/
 .claude/settings.local.json
+
+# Browser-testing artifacts (screenshots, snapshots, console logs).
+.playwright-mcp/

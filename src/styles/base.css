@@ -10,20 +10,26 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/*
+ * The mat IS the page. It fills the viewport with nothing behind it and
+ * nothing framing it, and everything else sits directly on the fiber.
+ */
 body {
   margin: 0;
   min-height: 100dvh;
-  background: var(--surface);
-  color: var(--ink);
+  background: var(--mat);
+  color: var(--ulli);
   font-family: var(--font-body);
-  line-height: 1.5;
+  font-size: var(--size-body);
+  line-height: var(--leading-body);
 }
 
 h1,
 h2,
 h3 {
   font-family: var(--font-display);
-  line-height: 1.15;
+  font-weight: 400;
+  line-height: var(--leading-headline);
   text-wrap: balance;
 }
 
@@ -37,22 +43,32 @@ a {
 }
 
 :where(a, button, [tabindex]):focus-visible {
-  outline: 2px solid var(--ink);
+  outline: 2px solid var(--ulli);
   outline-offset: 2px;
 }
 
 /*
  * The crawlable prose below the mount point is indexed content, not chrome.
- * It stays in the document and readable; the playable board will sit above it.
+ * It keeps its own quieter voice and never competes with the board above it.
  */
 .about {
   margin: 0 auto;
-  padding: var(--space-lg) var(--space-md) var(--space-xl);
+  padding: var(--space-xl) var(--space-md) var(--space-2xl);
   max-width: 72ch;
-  color: var(--ink-muted);
+  color: var(--ulli-muted);
 }
 
 .about h1,
 .about h2 {
-  color: var(--ink);
+  color: var(--ulli);
+}
+
+.about h1 {
+  font-size: var(--size-headline);
+}
+
+.about h2 {
+  font-size: var(--size-title);
+  font-family: var(--font-body);
+  font-weight: 700;
 }

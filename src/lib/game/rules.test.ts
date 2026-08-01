@@ -395,6 +395,20 @@ describe('winning', () => {
     expect(next.pot).toBe(0);
     // Collected the bear-off penalty of 1, then the pot of 10.
     expect(next.players[0].counters).toBe(before + 1 + 10);
+    // The pot is zeroed on transfer, so the amount won is recorded separately
+    // or nothing downstream could report what was taken.
+    expect(next.lastOutcome?.potCollected).toBe(10);
+  });
+
+  it('reports no pot collected on a move that does not win', () => {
+    const state = makeState({
+      pendingThrow: 1,
+      pot: 10,
+      players: [{ onTrack: [20], direction: 1 }, {}]
+    });
+    const next = applyMove(state, { kind: 'advance', pieceIndex: 0 })!;
+    expect(next.lastOutcome?.potCollected).toBe(0);
+    expect(next.pot).toBe(10);
   });
 
   it('accepts no further throw or move once won', () => {

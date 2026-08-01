@@ -236,7 +236,8 @@ export function applyThrow(state: GameState, beans: BeanThrow): GameState {
         extraTurn: false,
         paidToOpponent: 0,
         paidToPot: 0,
-        collectedFromOpponent: 0
+        collectedFromOpponent: 0,
+        potCollected: 0
       }
     };
   }
@@ -262,7 +263,8 @@ export function applyThrow(state: GameState, beans: BeanThrow): GameState {
       extraTurn: false,
       paidToOpponent: 0,
       paidToPot: moved,
-      collectedFromOpponent: 0
+      collectedFromOpponent: 0,
+      potCollected: 0
     }
   };
 }
@@ -350,8 +352,11 @@ export function applyMove(state: GameState, move: Move): GameState | null {
   }
 
   const won = piecesBorneOff(players[player]) === PIECES_PER_PLAYER;
+  let potCollected = 0;
   if (won) {
-    // The winner takes the pot.
+    // The winner takes the pot. Record the amount first: once transferred the
+    // pot is zero, and nothing downstream could say what was won.
+    potCollected = pot;
     players[player] = { ...players[player], counters: players[player].counters + pot };
     pot = 0;
   }
@@ -373,7 +378,8 @@ export function applyMove(state: GameState, move: Move): GameState | null {
       extraTurn: won ? false : extraTurn,
       paidToOpponent,
       paidToPot: 0,
-      collectedFromOpponent
+      collectedFromOpponent,
+      potCollected
     }
   };
 }

@@ -47,6 +47,11 @@ export interface MoveOutcome {
   readonly paidToPot: number;
   /** Counters actually collected from the opponent. */
   readonly collectedFromOpponent: number;
+  /**
+   * The pot taken on winning. Recorded because the pot is zeroed the moment it
+   * transfers, so afterwards the state can no longer say what was won.
+   */
+  readonly potCollected: number;
 }
 
 export interface GameState {

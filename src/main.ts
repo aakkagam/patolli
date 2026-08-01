@@ -1,3 +1,6 @@
+import '@fontsource/marcellus';
+import '@fontsource/alegreya-sans/400.css';
+import '@fontsource/alegreya-sans/700.css';
 import { mount } from 'svelte';
 import App from './lib/components/App.svelte';
 

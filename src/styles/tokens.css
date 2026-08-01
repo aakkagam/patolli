@@ -1,56 +1,83 @@
 /*
- * PROVISIONAL PLACEHOLDERS — not a design.
+ * The Painted Mat.
  *
- * This project has no DESIGN.md yet. These values exist only so the shell has
- * something to render with and so the token layer is in place; they are a
- * neutral grey scale chosen precisely because it commits to nothing.
+ * Values are canonical here in OKLCH and come from DESIGN.md, which is the
+ * source of truth. Five roles and no more: undyed fiber, rubber line,
+ * cochineal, indigo, maize. A sixth colour needs a reason written down there.
  *
- * The visual identity (a painted mat: rubber line, cochineal red, maize
- * yellow, indigo) is decided in the later identity change. Replace every value
- * below at that point. Do not let these harden into an accidental palette.
+ * There is deliberately no dark theme. The identity is dyed fiber in daylight,
+ * and inverting it produces exactly the torchlight look this brand rejects, so
+ * `prefers-color-scheme: dark` must not reappear here.
  */
 
 :root {
-  /* Surfaces */
-  --surface: oklch(97% 0.003 90);
-  --surface-raised: oklch(99% 0.002 90);
-  --surface-sunken: oklch(93% 0.004 90);
+  /* Undyed agave fiber. The mat fills the viewport; the board is a deeper
+     region of the same fiber, not an object sitting on it. */
+  --mat: oklch(0.91 0.022 96);
+  --mat-woven: oklch(0.86 0.028 96);
+  --mat-shadow: oklch(0.8 0.032 96);
 
-  /* Ink */
-  --ink: oklch(25% 0.008 90);
-  --ink-muted: oklch(50% 0.006 90);
-  --line: oklch(80% 0.006 90);
+  /* Liquid rubber. Every line, every outline, every glyph of primary text. */
+  --ulli: oklch(0.24 0.018 130);
+  --ulli-muted: oklch(0.46 0.016 128);
 
-  /* Type */
-  --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-display: var(--font-body);
+  /* Player one. Cochineal cannot carry text at full strength, which is what
+     the deep step is for. */
+  --cochineal: oklch(0.58 0.2 20);
+  --cochineal-deep: oklch(0.46 0.18 18);
+
+  /* Player two. Dark enough to be its own text colour. */
+  --indigo: oklch(0.28 0.12 272);
+  --indigo-lift: oklch(0.42 0.13 272);
+
+  /* Live state and nothing else. Never a stroke, never text, never alone:
+     1.35:1 against the mat is hue with nothing behind it. */
+  --maize: oklch(0.82 0.16 88);
+
+  /* Type. Fixed rem steps, never fluid clamps. */
+  --font-display: 'Marcellus', 'Iowan Old Style', 'Palatino Linotype', serif;
+  --font-body: 'Alegreya Sans', 'Gill Sans', 'Segoe UI', sans-serif;
+
+  --size-display: 2.25rem;
+  --size-headline: 1.5rem;
+  --size-title: 1.25rem;
+  --size-body: 1rem;
+  --size-label: 0.75rem;
+  --size-numeral: 3.5rem;
+
+  --leading-display: 1.1;
+  --leading-headline: 1.2;
+  --leading-title: 1.3;
+  --leading-body: 1.5;
+  --leading-tight: 1;
+
+  --tracking-display: 0.01em;
+  --tracking-label: 0.08em;
 
   /* Spacing */
   --space-xs: 0.25rem;
   --space-sm: 0.5rem;
   --space-md: 1rem;
-  --space-lg: 2rem;
-  --space-xl: 4rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
 
-  /* Shape */
+  /* Shape. Painted, not moulded. */
   --radius-sm: 2px;
   --radius-md: 4px;
+  --radius-pill: 999px;
 
-  /* Motion — spring tuning arrives with the playable board. */
+  /* The only shadow in the application: a counter in the grip, or a bean in
+     flight. Nothing at rest casts one. Do not add a second. */
+  --shadow-grip: 0 6px 14px oklch(0.24 0.018 130 / 0.22);
+
+  /* Motion */
   --duration-fast: 120ms;
   --duration-base: 220ms;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --surface: oklch(21% 0.006 90);
-    --surface-raised: oklch(26% 0.006 90);
-    --surface-sunken: oklch(17% 0.006 90);
-    --ink: oklch(94% 0.004 90);
-    --ink-muted: oklch(70% 0.005 90);
-    --line: oklch(38% 0.006 90);
-  }
+  /* Minimum touch target, held regardless of board scale. */
+  --target-min: 44px;
 }
 
 @media (prefers-reduced-motion: reduce) {
