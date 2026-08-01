@@ -79,4 +79,4 @@
 
 - [x] 11.1 Run `npm run lint`, `npm run check`, and `npm test` locally and confirm all pass
 - [x] 11.2 Run `npm run build -- --base=/patolli/` and confirm every asset path in `dist/` is rooted at `/patolli/` and the crawlable prose survives the build
-- [ ] 11.3 Push to `main`, then enable GitHub Pages with source "GitHub Actions" (manual, out of band), and confirm the deploy succeeds
+- [x] 11.3 Push to `main`, then enable GitHub Pages with source "GitHub Actions" (manual, out of band), and confirm the deploy succeeds
