@@ -1,0 +1,61 @@
+/*
+ * PROVISIONAL PLACEHOLDERS — not a design.
+ *
+ * This project has no DESIGN.md yet. These values exist only so the shell has
+ * something to render with and so the token layer is in place; they are a
+ * neutral grey scale chosen precisely because it commits to nothing.
+ *
+ * The visual identity (a painted mat: rubber line, cochineal red, maize
+ * yellow, indigo) is decided in the later identity change. Replace every value
+ * below at that point. Do not let these harden into an accidental palette.
+ */
+
+:root {
+  /* Surfaces */
+  --surface: oklch(97% 0.003 90);
+  --surface-raised: oklch(99% 0.002 90);
+  --surface-sunken: oklch(93% 0.004 90);
+
+  /* Ink */
+  --ink: oklch(25% 0.008 90);
+  --ink-muted: oklch(50% 0.006 90);
+  --line: oklch(80% 0.006 90);
+
+  /* Type */
+  --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: var(--font-body);
+
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 2rem;
+  --space-xl: 4rem;
+
+  /* Shape */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+
+  /* Motion — spring tuning arrives with the playable board. */
+  --duration-fast: 120ms;
+  --duration-base: 220ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --surface: oklch(21% 0.006 90);
+    --surface-raised: oklch(26% 0.006 90);
+    --surface-sunken: oklch(17% 0.006 90);
+    --ink: oklch(94% 0.004 90);
+    --ink-muted: oklch(70% 0.005 90);
+    --line: oklch(38% 0.006 90);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+  }
+}

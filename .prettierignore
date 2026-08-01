@@ -1,0 +1,16 @@
+dist/
+node_modules/
+package-lock.json
+
+# Vendored from ../senet; keep byte-identical to its source.
+.claude/
+openspec/
+
+# Hand-authored prose and specs where line breaks carry meaning
+# (tables, ASCII board diagrams). Prettier would reflow them.
+*.md
+
+# Hand-authored. The service-worker registration block at the bottom must stay
+# byte-identical to ../senet/index.html so the copies can be diffed and kept in
+# step; the siblings have no Prettier, so reformatting here would fork it.
+index.html

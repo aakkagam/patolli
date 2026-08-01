@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "statusMessage": "Formatting",
+            "timeout": 30,
+            "command": "jq -r '.tool_input.file_path // .tool_response.filePath // empty' | { read -r f || exit 0; case \"$f\" in *.svelte|*.ts|*.js) ;; *) exit 0 ;; esac; d=\"${CLAUDE_PROJECT_DIR:-$PWD}\"; if [ -x \"$d/node_modules/.bin/eslint\" ]; then \"$d/node_modules/.bin/eslint\" --fix \"$f\"; fi; if [ -x \"$d/node_modules/.bin/prettier\" ]; then \"$d/node_modules/.bin/prettier\" --write \"$f\"; fi; } 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}

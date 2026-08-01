@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.DS_Store
+*.local
+
+# The openspec command/skill scaffold is vendored from ../senet, which does not
+# track its own copy either. settings.json is deliberately NOT ignored: it
+# carries this repo's project-scoped formatting hook, which CLAUDE.md documents.
+.claude/commands/
+.claude/skills/
+.claude/settings.local.json

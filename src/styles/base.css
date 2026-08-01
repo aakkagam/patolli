@@ -1,0 +1,58 @@
+@import './tokens.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--font-body);
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+p {
+  max-width: 68ch;
+  text-wrap: pretty;
+}
+
+a {
+  color: inherit;
+}
+
+:where(a, button, [tabindex]):focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+/*
+ * The crawlable prose below the mount point is indexed content, not chrome.
+ * It stays in the document and readable; the playable board will sit above it.
+ */
+.about {
+  margin: 0 auto;
+  padding: var(--space-lg) var(--space-md) var(--space-xl);
+  max-width: 72ch;
+  color: var(--ink-muted);
+}
+
+.about h1,
+.about h2 {
+  color: var(--ink);
+}
