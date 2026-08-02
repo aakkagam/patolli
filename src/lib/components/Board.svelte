@@ -1,32 +1,58 @@
 <script lang="ts">
-  import { CELL, VIEW, allCells } from '../geometry';
+  import { CELL, VIEW, allCells, cellFor } from '../geometry';
   import { kindOf, TRACK_LENGTH } from '../game/board';
   import type { CellPosition } from '../geometry';
-
   import type { Snippet } from 'svelte';
 
   interface Props {
     /** Squares that are legal destinations right now. */
     live?: Set<number>;
+    /** Squares holding a piece the player to act may pick up. */
+    pickable?: Set<number>;
     /** The square a bear-off would leave from, drawn as an exit. */
     exit?: number | null;
-    onsquare?: (trackIndex: number) => void;
+    onpick?: (trackIndex: number) => void;
+    onplace?: (trackIndex: number) => void;
+    /** Drag offset in viewBox units, or null when the piece is released. */
+    ondrag?: (offset: { x: number; y: number } | null) => void;
     /** Pieces, drawn in the board's own coordinate space. */
     children?: Snippet;
   }
 
-  const { live = new Set<number>(), exit = null, onsquare, children }: Props = $props();
+  const {
+    live = new Set<number>(),
+    pickable = new Set<number>(),
+    exit = null,
+    onpick,
+    onplace,
+    ondrag,
+    children
+  }: Props = $props();
 
   const cells = allCells();
 
+  /** WCAG target-size floor, in real CSS pixels. */
+  const MIN_TARGET_PX = 44;
+
+  let svgEl: SVGSVGElement | undefined = $state.raw();
+  let renderedWidth = $state.raw(0);
+
+  const pxPerUnit = $derived(renderedWidth > 0 ? renderedWidth / VIEW.width : 0);
+
   /**
-   * Sixteen cells across cannot each be 44px on a phone: that needs a 704px
-   * viewport. So the *interactive* area of a live square grows beyond its drawn
-   * cell, which is what keeps the thing a player actually has to hit within
-   * reach. Only live squares are interactive, and they are few and rarely
-   * adjacent, so the overlap this creates is not reachable in practice.
+   * Sixteen cells across cannot each be 44px: that needs a ~704px viewport, and
+   * a phone gives about 330px, so a drawn cell is roughly 20px. The drawn cell
+   * therefore cannot be the target. Instead the *interactive* radius is sized
+   * in real pixels and only the things a player must actually hit — the few
+   * live squares and grabbable pieces — are hit-tested, by nearest centre.
+   * Nearest-centre is what makes the enlarged radii safe: they overlap freely,
+   * and the closest one still wins rather than whichever happens to be on top.
    */
-  const TARGET_GROW = CELL * 0.45;
+  const targetRadius = $derived(
+    pxPerUnit > 0 ? Math.max(CELL * 0.5, MIN_TARGET_PX / 2 / pxPerUnit) : CELL * 0.5
+  );
+
+  let dragging = $state.raw<{ from: { x: number; y: number } } | null>(null);
 
   /**
    * A deterministic wobble per square, so no two rubber strokes are identical
@@ -46,9 +72,35 @@
     return `M ${x0} ${y0} L ${x1} ${y0 + j(5)} L ${x1 + j(6)} ${y1} L ${x0 + j(7)} ${y1 + j(8)} Z`;
   }
 
-  /** Rounded end squares curve their own outline: the mark is the cell. */
-  function isRoundedCell(index: number): boolean {
-    return kindOf(index) === 'rounded';
+  /**
+   * The eight end squares are drawn with genuinely curved corners, because the
+   * rule they carry (land here and throw again) is structural. `stroke-linecap`
+   * does nothing on a closed path — only `stroke-linejoin` applies there — so
+   * the curve has to be in the path itself.
+   */
+  function roundedCellPath(cell: CellPosition, index: number): string {
+    const r = CELL * 0.3;
+    const j = (s: number) => jitter(index, s) * 0.6;
+    const x0 = cell.x + j(1);
+    const y0 = cell.y + j(2);
+    const x1 = cell.x + CELL + j(3);
+    const y1 = cell.y + CELL + j(4);
+    return [
+      `M ${x0 + r} ${y0}`,
+      `L ${x1 - r} ${y0}`,
+      `Q ${x1} ${y0} ${x1} ${y0 + r}`,
+      `L ${x1} ${y1 - r}`,
+      `Q ${x1} ${y1} ${x1 - r} ${y1}`,
+      `L ${x0 + r} ${y1}`,
+      `Q ${x0} ${y1} ${x0} ${y1 - r}`,
+      `L ${x0} ${y0 + r}`,
+      `Q ${x0} ${y0} ${x0 + r} ${y0}`,
+      'Z'
+    ].join(' ');
+  }
+
+  function outline(cell: CellPosition, index: number): string {
+    return kindOf(index) === 'rounded' ? roundedCellPath(cell, index) : cellPath(cell, index);
   }
 
   /**
@@ -61,9 +113,74 @@
     const depth = CELL * 0.42;
     return `M ${cell.x + inset} ${cell.y} L ${cell.x + CELL - inset} ${cell.y} L ${cell.cx} ${cell.y + depth} Z`;
   }
+
+  function toUnits(clientX: number, clientY: number): { x: number; y: number } | null {
+    if (!svgEl) return null;
+    const box = svgEl.getBoundingClientRect();
+    if (box.width === 0) return null;
+    return {
+      x: ((clientX - box.left) / box.width) * VIEW.width,
+      y: ((clientY - box.top) / box.height) * VIEW.height
+    };
+  }
+
+  /** The closest candidate square to a point, within the target radius. */
+  function nearest(candidates: Set<number>, point: { x: number; y: number }): number | null {
+    let best: number | null = null;
+    let bestDistance = Infinity;
+    for (const index of candidates) {
+      const cell = cellFor(index);
+      const distance = Math.hypot(cell.cx - point.x, cell.cy - point.y);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = index;
+      }
+    }
+    return best !== null && bestDistance <= targetRadius ? best : null;
+  }
+
+  function onpointerdown(event: PointerEvent) {
+    const point = toUnits(event.clientX, event.clientY);
+    if (!point) return;
+
+    const picked = nearest(pickable, point);
+    if (picked !== null) {
+      (event.currentTarget as Element).setPointerCapture?.(event.pointerId);
+      dragging = { from: point };
+      onpick?.(picked);
+      return;
+    }
+    // Nothing to pick up here, so this is the second tap of a tap-tap move.
+    const placed = nearest(live, point);
+    if (placed !== null) onplace?.(placed);
+  }
+
+  function onpointermove(event: PointerEvent) {
+    if (!dragging) return;
+    const point = toUnits(event.clientX, event.clientY);
+    if (!point) return;
+    ondrag?.({ x: point.x - dragging.from.x, y: point.y - dragging.from.y });
+  }
+
+  function onpointerup(event: PointerEvent) {
+    if (!dragging) return;
+    const point = toUnits(event.clientX, event.clientY);
+    const moved = point
+      ? Math.hypot(point.x - dragging.from.x, point.y - dragging.from.y) > CELL * 0.25
+      : false;
+    dragging = null;
+    // Releasing clears the offset, so a refused drop springs back to its square
+    // under the piece's own transition rather than needing a separate bounce.
+    ondrag?.(null);
+    if (!moved || !point) return; // a tap: the piece stays selected
+    const placed = nearest(live, point);
+    if (placed !== null) onplace?.(placed);
+  }
 </script>
 
 <svg
+  bind:this={svgEl}
+  bind:clientWidth={renderedWidth}
   class="board"
   viewBox="0 0 {VIEW.width} {VIEW.height}"
   role="grid"
@@ -72,7 +189,7 @@
   <!-- The field is a deeper region of the same fiber, not an object on it. -->
   <g class="field">
     {#each cells as cell, index (index)}
-      <path d={cellPath(cell, index)} class="cell-field" />
+      <path d={outline(cell, index)} class="cell-field" />
     {/each}
   </g>
 
@@ -90,7 +207,7 @@
   <g class="live">
     {#each cells as cell, index (index)}
       {#if live.has(index)}
-        <path d={cellPath(cell, index)} class={['cell-live', index === exit && 'exit']} />
+        <path d={outline(cell, index)} class={['cell-live', index === exit && 'exit']} />
       {/if}
     {/each}
   </g>
@@ -98,8 +215,8 @@
   <g class="lines">
     {#each cells as cell, index (index)}
       <path
-        d={cellPath(cell, index)}
-        class={['cell-line', isRoundedCell(index) && 'rounded', live.has(index) && 'live']}
+        d={outline(cell, index)}
+        class={['cell-line', kindOf(index) === 'rounded' && 'rounded', live.has(index) && 'live']}
       />
     {/each}
   </g>
@@ -121,37 +238,59 @@
     <g class="pieces">{@render children()}</g>
   {/if}
 
-  {#if onsquare}
-    <g class="hit">
-      {#each cells as cell, index (index)}
+  <!--
+    Keyboard reaches the board one square at a time, so these stay per cell and
+    only the interactive ones are focusable. They take no pointer events: touch
+    and mouse go through the tap layer below, which resolves by nearest centre.
+  -->
+  <g class="cells-a11y">
+    {#each cells as cell, index (index)}
+      {#if live.has(index) || pickable.has(index)}
         <rect
-          x={cell.x - (live.has(index) ? TARGET_GROW : 0)}
-          y={cell.y - (live.has(index) ? TARGET_GROW : 0)}
-          width={CELL + (live.has(index) ? TARGET_GROW * 2 : 0)}
-          height={CELL + (live.has(index) ? TARGET_GROW * 2 : 0)}
-          class={['hit-area', live.has(index) && 'targetable']}
-          data-square={index}
+          x={cell.x}
+          y={cell.y}
+          width={CELL}
+          height={CELL}
+          class="cell-key"
           role="gridcell"
-          tabindex={live.has(index) ? 0 : -1}
-          aria-label="Square {index + 1} of {TRACK_LENGTH}"
-          onclick={() => onsquare?.(index)}
+          tabindex={0}
+          aria-label={pickable.has(index)
+            ? `Pick up the piece on square ${index + 1} of ${TRACK_LENGTH}`
+            : `Move to square ${index + 1} of ${TRACK_LENGTH}`}
           onkeydown={(event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-              event.preventDefault();
-              onsquare?.(index);
-            }
+            if (event.key !== 'Enter' && event.key !== ' ') return;
+            event.preventDefault();
+            if (pickable.has(index)) onpick?.(index);
+            else onplace?.(index);
           }}
         />
-      {/each}
-    </g>
-  {/if}
+      {/if}
+    {/each}
+  </g>
+
+  <!--
+    Pointer input only. Everything this layer does is reachable from the
+    keyboard through the focusable cells above, so it is hidden from assistive
+    technology rather than duplicating those controls.
+  -->
+  <rect
+    class="tap-layer"
+    x="0"
+    y="0"
+    width={VIEW.width}
+    height={VIEW.height}
+    role="presentation"
+    aria-hidden="true"
+    {onpointerdown}
+    {onpointermove}
+    {onpointerup}
+  />
 </svg>
 
 <style>
   /*
    * The board is square, so it must be capped by whichever axis is smaller or
-   * the arms run off the side of a wide, short viewport. `min()` of the two
-   * keeps the whole cross on screen without ever scrolling sideways.
+   * the arms run off the side of a wide, short viewport.
    */
   .board {
     display: block;
@@ -160,6 +299,7 @@
     height: auto;
     margin: 0 auto;
     overflow: visible;
+    touch-action: none;
   }
 
   .cell-field {
@@ -173,10 +313,9 @@
     stroke-linejoin: round;
   }
 
-  /* The rounded end squares curve their own outline rather than wearing a badge. */
+  /* The end squares curve their own outline; the curve is in the path. */
   .cell-line.rounded {
-    stroke-width: 0.55;
-    stroke-linecap: round;
+    stroke-width: 0.5;
   }
 
   .wedge {
@@ -209,25 +348,19 @@
     stroke-width: 0.7;
   }
 
-  /*
-   * The hit layer sits above the pieces so a drag release can be resolved by
-   * hit-testing, but it must not swallow pointer events aimed at a piece, so
-   * only live squares are interactive.
-   */
-  .hit-area {
+  .cell-key {
     fill: transparent;
-    cursor: default;
     pointer-events: none;
   }
 
-  .hit-area.targetable {
-    cursor: pointer;
-    pointer-events: auto;
-  }
-
-  .hit-area:focus-visible {
+  .cell-key:focus-visible {
     outline: none;
     stroke: var(--ulli);
-    stroke-width: 0.6;
+    stroke-width: 0.8;
+  }
+
+  .tap-layer {
+    fill: transparent;
+    cursor: pointer;
   }
 </style>

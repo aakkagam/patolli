@@ -120,9 +120,15 @@
     transform: translateY(1px);
   }
 
+  /*
+   * Ulli, not Ulli Muted: muted on Mat Shadow measures 3.80:1, under the 4.5:1
+   * AA floor for 12px bold. WCAG exempts disabled controls, but PRODUCT.md
+   * sets the floor for "all text and interactive states" without that carve-out.
+   */
   .throw-button:disabled {
     background: var(--mat-shadow);
-    color: var(--ulli-muted);
+    color: var(--ulli);
+    opacity: 0.85;
     cursor: default;
   }
 

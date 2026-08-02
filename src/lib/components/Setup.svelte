@@ -156,9 +156,11 @@
     background: var(--cochineal-deep);
   }
 
+  /* Ulli on Mat Shadow is 8.79:1; muted would be 3.80:1 and fail AA. */
   .primary:disabled {
     background: var(--mat-shadow);
-    color: var(--ulli-muted);
+    color: var(--ulli);
+    opacity: 0.85;
     cursor: default;
   }
 

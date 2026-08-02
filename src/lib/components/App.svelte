@@ -8,12 +8,12 @@
   import { game } from '../store.svelte';
   import type { PlayerId } from '../game/types';
 
-  const state = $derived(game.state);
+  const snapshot = $derived(game.state);
 
   /** Every piece standing on the board, with the square it occupies. */
   const placed = $derived.by(() => {
     const list: { player: PlayerId; pieceIndex: number; trackIndex: number }[] = [];
-    state.players.forEach((side, index) => {
+    snapshot.players.forEach((side, index) => {
       const player = index as PlayerId;
       side.pieces.forEach((piece, pieceIndex) => {
         if (piece.at !== 'track') return;
@@ -37,15 +37,37 @@
 
   const exit = $derived(game.targets.find((target) => target.bearsOff)?.trackIndex ?? null);
 
-  /** Resolve a drag release to a board square by hit-testing the hit layer. */
-  function squareAt(clientX: number, clientY: number): number | null {
-    const element = document.elementFromPoint(clientX, clientY);
-    const attribute = element?.getAttribute('data-square');
-    return attribute === null || attribute === undefined ? null : Number(attribute);
+  /** Squares holding a piece the player to act may pick up. */
+  const pickable = $derived(
+    new Set(
+      placed
+        .filter((item) => item.player === snapshot.turn && game.grabbable.has(item.pieceIndex))
+        .map((item) => item.trackIndex)
+    )
+  );
+
+  /** The square being dragged from, and how far, in viewBox units. */
+  let dragFrom = $state.raw<number | null>(null);
+  let dragOffset = $state.raw<{ x: number; y: number } | null>(null);
+
+  function onpick(trackIndex: number) {
+    const item = placed.find(
+      (candidate) => candidate.trackIndex === trackIndex && candidate.player === snapshot.turn
+    );
+    if (!item) return;
+    dragFrom = trackIndex;
+    game.select({ kind: 'piece', pieceIndex: item.pieceIndex });
   }
 
-  function onsquare(trackIndex: number) {
+  function onplace(trackIndex: number) {
     game.playTo(trackIndex);
+    dragFrom = null;
+    dragOffset = null;
+  }
+
+  function ondrag(offset: { x: number; y: number } | null) {
+    dragOffset = offset;
+    if (offset === null) dragFrom = null;
   }
 </script>
 
@@ -53,24 +75,22 @@
   {#if game.phase !== 'playing'}
     <Setup />
   {:else}
-    {#if state.winner !== null}
-      <WinBanner winner={state.winner} pot={state.lastOutcome?.potCollected ?? 0} />
+    {#if snapshot.winner !== null}
+      <WinBanner winner={snapshot.winner} pot={snapshot.lastOutcome?.potCollected ?? 0} />
     {/if}
 
     <div class="stage">
       <div class="board-slot">
-        <Board {live} {exit} {onsquare}>
+        <Board {live} {pickable} {exit} {onpick} {onplace} {ondrag}>
           {#each placed as item (`${item.player}-${item.pieceIndex}`)}
             <Piece
               player={item.player}
               trackIndex={item.trackIndex}
-              grabbable={item.player === state.turn && game.grabbable.has(item.pieceIndex)}
+              grabbable={item.player === snapshot.turn && game.grabbable.has(item.pieceIndex)}
               selected={game.selection?.kind === 'piece' &&
                 game.selection.pieceIndex === item.pieceIndex &&
-                item.player === state.turn}
-              onpick={() => game.select({ kind: 'piece', pieceIndex: item.pieceIndex })}
-              ondrop={(square) => (square === null ? false : game.playTo(square))}
-              {squareAt}
+                item.player === snapshot.turn}
+              offset={dragFrom === item.trackIndex ? dragOffset : null}
             />
           {/each}
         </Board>
