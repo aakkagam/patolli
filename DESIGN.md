@@ -122,7 +122,7 @@ components:
 
 **Creative North Star: "The Painted Mat"**
 
-A woven agave mat unrolled on the floor between two people, its saltire laid down in liquid rubber, counters of dyed stone sitting in the squares. Daylight, not torchlight. The mat is not a widget on a page; the mat IS the page, filling the viewport edge to edge with nothing behind it and nothing framing it. Turn state, the throw, the pot and settings sit directly on the fiber, quiet and peripheral, never in a panel.
+A woven agave mat unrolled on the floor between two people, its cross laid down in liquid rubber, counters of dyed stone sitting in the squares. Daylight, not torchlight. The mat is not a widget on a page; the mat IS the page, filling the viewport edge to edge with nothing behind it and nothing framing it. Turn state, the throw, the pot and settings sit directly on the fiber, quiet and peripheral, never in a panel.
 
 Over that material sits a duel. Nothing is ever captured, so there are no blowouts to hide behind: every square you occupy is a square your opponent cannot use. The design has one job beyond legibility, which is to make that squeeze visible. Options closing must be something a player watches happen, not something they infer from losing.
 
@@ -158,7 +158,7 @@ Five roles, high chroma where it counts, on an undyed plant-fiber ground. Values
 ### Neutral
 
 - **Mat** `oklch(0.91 0.022 96)`: undyed agave fiber. Fills the viewport. Warmer than paper and greener than clay, which is what keeps it out of the sibling repos' cream family.
-- **Mat Woven** `oklch(0.86 0.028 96)`: the saltire's field, a slightly deeper area of the same fiber where the dye has soaked in. This is the board, and it is a region of the mat, not an object on it.
+- **Mat Woven** `oklch(0.86 0.028 96)`: the board's field, a slightly deeper area of the same fiber where the dye has soaked in. This is the board, and it is a region of the mat, not an object on it.
 - **Mat Shadow** `oklch(0.80 0.032 96)`: pressed and sunken states, ledger rules, disabled controls.
 - **Ulli** `oklch(0.24 0.018 130)`: liquid rubber. Every line on the board, every piece outline, every glyph of primary text. Warm-dark with a green cast, never `#000`. 12.6:1 on the mat.
 - **Ulli Muted** `oklch(0.46 0.016 128)`: secondary text, spent rubber, the crawlable prose (5.4:1).
@@ -221,9 +221,10 @@ Everything is drawn with the same instrument. Buttons, board lines, piece outlin
 
 ### Board
 
-- **Ground:** Mat, filling the viewport. The saltire's field is Mat Woven, a region of the same fiber, with no border, no radius and no shadow separating it.
+- **Ground:** Mat, filling the viewport. The board's field is Mat Woven, a region of the same fiber, with no border, no radius and no shadow separating it.
 - **Lines:** Ulli, roughly 2px at board scale, with sub-pixel path jitter so no two strokes are identical. Never a stroke of uniform machine weight.
-- **Squares:** 60 cells in a saltire of four 2x7 arms plus a central 2x2. Positions come from `src/lib/geometry.ts` in abstract viewBox units, never pixels.
+- **Squares:** 60 cells in a cross of four 2x7 arms plus a central 2x2. Positions come from `src/lib/geometry.ts` in abstract viewBox units, never pixels.
+- **Orientation:** the board is drawn as an **axis-aligned cross (+)**, not the diagonal saltire (X) of the printed source. It is the same 60-cell graph rotated 45 degrees, chosen so each player's arm points squarely at them across a passed device and so a portrait phone is filled rather than wasted on a diagonal's bounding box.
 - **Rounded end squares** (the 8 that grant another turn): the cell's own outline curves. The mark is structural, drawn into the board, not an overlay badge.
 - **Wedge squares:** the wedge bites into the penalised square only, never straddling the boundary between two. The printed board art draws it across a seam, which is exactly the ambiguity that makes players expect both squares to cost double. The art must tell the truth about the rule, so the wedge points at the one square that charges.
 - **Entry squares:** the pinwheel of decorated centre squares is drawn, because it encodes the track. A player must be able to trace their own loop with a finger.
