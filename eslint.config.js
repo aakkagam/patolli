@@ -51,9 +51,15 @@ export default ts.config(
     }
   },
 
-  // Build configuration runs in Node, not the browser.
+  // Build configuration and the asset generator run in Node, not the browser.
   {
-    files: ['*.config.{js,ts}', 'vite.config.ts', 'eslint.config.js', 'svelte.config.js'],
+    files: [
+      '*.config.{js,ts}',
+      'vite.config.ts',
+      'eslint.config.js',
+      'svelte.config.js',
+      'scripts/**'
+    ],
     languageOptions: {
       globals: { ...globals.node }
     }

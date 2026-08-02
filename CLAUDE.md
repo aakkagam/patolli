@@ -41,6 +41,7 @@ Linting is **flat config** in `eslint.config.js`: `@eslint/js` recommended, `typ
 - `npm run lint` — `eslint .` plus `prettier --check .`
 - `npm run format` — `prettier --write .`
 - `npm run check` — `svelte-check` (types and Svelte diagnostics; **not** a substitute for lint, and lint is not a substitute for it)
+- `npm run assets` — regenerate `public/og.png` and `public/icon.svg` from the board. They are **generated, not drawn**: the script imports `src/lib/geometry.ts` and reads the palette out of `src/styles/tokens.css`, so the assets cannot drift from the game. Output is deterministic, so rerunning on an unchanged tree produces no diff — run it after any geometry or palette change. The icon deliberately renders a simplified solid cross rather than the full board, because sixty squares at favicon size is a smudge and a hairline stroke disappears entirely.
 - `npm test` — Vitest once; `npm run test:watch` — watch
 - Single test file: `npx vitest run src/lib/game/rules.test.ts`; filter by name: `npx vitest run -t "pattern"`
 
