@@ -3,9 +3,7 @@
 ## Purpose
 
 Project structure, the build/test/check/lint toolchain, styles foundation, hand-authored SEO document, and the GitHub Pages deploy pipeline at base `/patolli/`.
-
 ## Requirements
-
 ### Requirement: Build and development toolchain
 
 The project SHALL build with Vite and Svelte 5 in TypeScript, using the current dependency line rather than the pins carried by the sibling repos: Svelte `^5.56`, Vite `^8.1`, `@sveltejs/vite-plugin-svelte` `^7.2`, and Vitest `^4.1`. Source SHALL be organised in three strictly ordered layers: pure framework-free logic in `src/lib/game/`, a runes-based singleton store in `src/lib/store.svelte.ts`, and components in `src/lib/components/`.
@@ -105,30 +103,41 @@ The repository SHALL deploy to GitHub Pages on push to `main` via `.github/workf
 - **WHEN** the page loads in an environment with no `/sw.js`, such as the dev server
 - **THEN** registration is attempted, rejects harmlessly, and the page continues to work
 
-### Requirement: Placeholder application shell
-
-The app SHALL mount a placeholder shell that loads the styles foundation and confirms the build works end to end. It SHALL NOT present a playable board; the playable game is a later change.
-
-#### Scenario: Shell mounts
-
-- **WHEN** the app loads
-- **THEN** a placeholder shell renders in the mount point without console errors
-
-#### Scenario: No playable board is present
-
-- **WHEN** the placeholder shell is displayed
-- **THEN** no board, pieces, or throw controls are rendered
-
 ### Requirement: Styles foundation
 
-The project SHALL split styles into a design-token layer and a base layer under `src/styles/`. Because no `DESIGN.md` exists yet, token values SHALL be neutral placeholders, explicitly marked as provisional, so that no visual identity is invented in this change.
+The project SHALL split styles into a design-token layer and a base layer under `src/styles/`. Token values SHALL be the real palette and type scale defined in `DESIGN.md`, expressed as CSS custom properties. No provisional placeholder values SHALL remain, and no dark theme SHALL ship.
 
-#### Scenario: Token layer exists and is provisional
+#### Scenario: Tokens carry the real identity
 
 - **WHEN** the styles foundation is inspected
-- **THEN** tokens are defined as CSS custom properties and marked as placeholders pending the identity change
+- **THEN** the token layer defines the colours and type scale from `DESIGN.md`, with no value marked provisional
 
-#### Scenario: Styles load in the shell
+#### Scenario: Styles load in the game
 
-- **WHEN** the placeholder shell renders
+- **WHEN** the game renders
 - **THEN** the token and base stylesheets are applied
+
+#### Scenario: No dark theme ships
+
+- **WHEN** the stylesheets are inspected
+- **THEN** they contain no `prefers-color-scheme: dark` block
+
+### Requirement: Application shell
+
+The app SHALL mount the playable game: the board, pieces, bean throw, turn flow and pot ledger, wired to the pure rules engine through the store. The hand-authored SEO head and the crawlable prose below the mount point SHALL be preserved unchanged.
+
+#### Scenario: The game mounts
+
+- **WHEN** the app loads
+- **THEN** the playable board renders in the mount point without console errors
+
+#### Scenario: A game can be played to a win
+
+- **WHEN** two players throw and move through a full game
+- **THEN** the game can be completed, a winner declared, and a new game started
+
+#### Scenario: Indexed content is preserved
+
+- **WHEN** the built page is inspected
+- **THEN** the title, canonical link, OG and Twitter tags, `VideoGame` JSON-LD, service-worker registration and crawlable prose are all still present
+
